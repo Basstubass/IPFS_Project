@@ -12,6 +12,9 @@ import Fileup_loader from './Components/file_loader';
 import File_view from './Components/file_view';
 import NotFound from './Components/404';
 
+///firebase
+import db from "./firebase";
+
 
 function App() {
   return (
