@@ -1,14 +1,34 @@
 from typing import List
-
 from fastapi import Depends, FastAPI, HTTPException, FastAPI
 from sqlalchemy.orm import Session
+from pydantic import BaseModel  # リクエストbodyを定義するために必要
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 
+
+# ////////////////reactとの接続//////////////////
+from fastapi.middleware.cors import CORSMiddleware
+
+
+
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+
+
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 
 # Dependency
@@ -18,6 +38,17 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+class Text(BaseModel):
+    post_text: str
+
+@app.post("/hello/")
+def create_test(text: Text):
+    print(text.post_text)
+    return {"test":text.post_text}
+
+
 
 
 @app.post("/users/", response_model=schemas.User)
@@ -57,26 +88,11 @@ def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 
 
-# ////////////////reactとの接続//////////////////
-from fastapi.middleware.cors import CORSMiddleware
-# ////////////////reactとの接続//////////////////
-app = FastAPI()
 
-origins = [
-    "http://localhost:3000",
-]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 @app.get("/")
 def Hello():
     
     return {"Hello":"World!"}
-
